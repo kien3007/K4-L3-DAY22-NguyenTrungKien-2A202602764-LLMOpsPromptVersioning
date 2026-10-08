@@ -1,0 +1,74 @@
+﻿=======================================================
+  B╞░ß╗¢c 4: Guardrails AI Validators
+=======================================================
+
+=======================================================
+  Demo: PII Detection & Redaction
+=======================================================
+  ΓÜá∩╕Å  ─É├ú redact 1 PII: ['EMAIL']
+
+[Email]
+  Input:  Contact John at john.doe@example.com for details.
+  Output: Contact John at [EMAIL_REDACTED] for details.
+  ΓÜá∩╕Å  ─É├ú redact 1 PII: ['PHONE']
+
+[Phone]
+  Input:  Call our support line at (555) 867-5309.
+  Output: Call our support line at [PHONE_REDACTED].
+  ΓÜá∩╕Å  ─É├ú redact 1 PII: ['SSN']
+
+[SSN]
+  Input:  Patient SSN is 123-45-6789 on file.
+  Output: Patient SSN is [SSN_REDACTED] on file.
+  ΓÜá∩╕Å  ─É├ú redact 1 PII: ['CREDIT_CARD']
+
+[Credit Card]
+  Input:  Payment made with card 4532 1234 5678 9010.
+  Output: Payment made with card [CREDIT_CARD_REDACTED].
+  ΓÜá∩╕Å  ─É├ú redact 2 PII: ['EMAIL', 'PHONE']
+
+[Multi-PII]
+  Input:  Email: alice@example.com, Phone: 555-123-4567
+  Output: Email: [EMAIL_REDACTED], Phone: [PHONE_REDACTED]
+
+[Clean]
+  Input:  No sensitive information in this text.
+  Output: No sensitive information in this text.
+
+=======================================================
+  Demo: JSON Formatting & Repair
+=======================================================
+
+[Valid JSON] Γ£à Pass
+  Input:  {"name": "Alice", "age": 30}
+  Output: {"name": "Alice", "age": 30}
+  ≡ƒöº JSON ─æ├ú ─æ╞░ß╗úc sß╗¡a th├ánh c├┤ng
+
+[Markdown fences] Γ£à Pass
+  Input:  ```json
+{"name": "Bob"}
+```
+  Output: {
+  "name": "Bob"
+}
+  ≡ƒöº JSON ─æ├ú ─æ╞░ß╗úc sß╗¡a th├ánh c├┤ng
+
+[Single quotes] Γ£à Pass
+  Input:  {'name': 'Charlie', 'score': 95}
+  Output: {
+  "name": "Charlie",
+  "score": 95
+}
+  ≡ƒöº JSON ─æ├ú ─æ╞░ß╗úc sß╗¡a th├ánh c├┤ng
+
+[Trailing comma] Γ£à Pass
+  Input:  {"key": "value",}
+  Output: {
+  "key": "value"
+}
+
+[Truly invalid] Γ£à Pass
+  Input:  This is not JSON at all: ??? {]
+  Output: {"error": "Kh├┤ng thß╗â ph├ón t├¡ch JSON", "raw": "This is not JS
+
+Γ£à B╞░ß╗¢c 4 ho├án th├ánh!

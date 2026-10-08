@@ -47,10 +47,21 @@ def get_llm(provider: str = None, temperature: float = 0.0):
 
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
+        if not getattr(ChatGoogleGenerativeAI, "_candidate_count_patched", False):
+            orig_build = ChatGoogleGenerativeAI._build_request_config
+            def safe_build(self, *args, **kwargs):
+                cfg = orig_build(self, *args, **kwargs)
+                if hasattr(cfg, "candidate_count") and cfg.candidate_count is not None and cfg.candidate_count > 1:
+                    cfg.candidate_count = 1
+                return cfg
+            ChatGoogleGenerativeAI._build_request_config = safe_build
+            ChatGoogleGenerativeAI._candidate_count_patched = True
+
         return ChatGoogleGenerativeAI(
             model=config.GEMINI_MODEL,
             google_api_key=config.GOOGLE_API_KEY,
             temperature=temperature,
+            max_retries=5,
         )
 
     elif provider == "anthropic":
@@ -105,7 +116,7 @@ def get_embeddings(provider: str = None):
     """
     provider = (provider or config.PROVIDER).lower()
 
-    if provider in ("openai", "openrouter"):
+    if provider == "openai":
         from langchain_openai import OpenAIEmbeddings
         kwargs = {
             "model": config.OPENAI_EMBEDDING_MODEL,
@@ -113,6 +124,24 @@ def get_embeddings(provider: str = None):
         }
         if config.OPENAI_BASE_URL:
             kwargs["base_url"] = config.OPENAI_BASE_URL
+        return OpenAIEmbeddings(**kwargs)
+
+    elif provider == "openrouter":
+        from langchain_openai import OpenAIEmbeddings
+        # Ưu tiên OpenAI key nếu có, nếu không dùng OpenRouter key và endpoint
+        if config.OPENAI_API_KEY and not config.OPENAI_API_KEY.startswith("your_"):
+            kwargs = {
+                "model": config.OPENAI_EMBEDDING_MODEL,
+                "api_key": config.OPENAI_API_KEY,
+            }
+            if config.OPENAI_BASE_URL:
+                kwargs["base_url"] = config.OPENAI_BASE_URL
+        else:
+            kwargs = {
+                "model": config.OPENAI_EMBEDDING_MODEL,
+                "api_key": config.OPENROUTER_API_KEY,
+                "base_url": config.OPENROUTER_BASE_URL,
+            }
         return OpenAIEmbeddings(**kwargs)
 
     elif provider == "gemini":
